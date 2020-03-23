@@ -17,7 +17,7 @@ slackbuild_init() {
 # Optional filename to save to is $2.
 slackbuild_download() {
     local CMD="wget -N -c "
-    [[ -n "$2" ]] && CMD+="-o '$2' "
+    [[ -n "$2" ]] && CMD+="-O '$2' "
     CMD+="'$1'"
 
     eval $CMD
