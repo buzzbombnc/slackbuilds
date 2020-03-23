@@ -2,6 +2,11 @@
 #
 # Common SlackBuild functions
 
+die() {
+    echo "$@.  Exiting."
+    exit 1
+}
+
 slackbuild_init() {
     CWD=`pwd`
     TMP=${TMP:-/tmp}
@@ -21,4 +26,17 @@ slackbuild_download() {
     CMD+="'$1'"
 
     eval $CMD
+}
+
+# Sets sane permissions for the unpacked files.
+slackbuild_setpkgperms() {
+    # Make sure we're not about to wreck something.
+    [[ "$(pwd)" =~ ^/tmp/ ]] || die "slackbuild_setpkgperms: must be in subdirectory of /tmp."
+
+    chown -R root.root .
+    find . -perm 777 -exec chmod 755 {} \;
+    find . -perm 775 -exec chmod 755 {} \;
+    find . -perm 666 -exec chmod 644 {} \;
+    find . -perm 664 -exec chmod 644 {} \;
+    find . -perm 444 -exec chmod 644 {} \;
 }
