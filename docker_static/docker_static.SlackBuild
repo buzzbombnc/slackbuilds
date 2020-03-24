@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Common Slackbuild functions
+. ../common/common.sh
+
+NAME=docker_static
+VERSION=19.03.8
+ARCH=${ARCH:-x86_64}
+BUILD=${BUILD:-1}
+
+slackbuild_init
+
+slackbuild_download https://download.docker.com/linux/static/stable/${ARCH}/docker-${VERSION}.tgz ${NAME}-${VERSION}.tgz
+
+# These files unpack to a 'docker/' directory with no version.  Create our own.
+cd $TMP
+rm -rf ${NAME}-${VERSION}
+mkdir ${NAME}-${VERSION}
+cd ${NAME}-${VERSION}
+tar zxvf $CWD/${NAME}-${VERSION}.tgz
+cd docker
+
+slackbuild_setpkgperms
+
+mkdir -p ${PKG}/etc/docker
+
+mkdir -p ${PKG}/etc/default
+install -g root -o root -m 0644 ${CWD}/docker.default ${PKG}/etc/default/docker.default.new
+
+# Startup script.
+# Stolen from the full-compile docker SlackBuild here: https://slackbuilds.org/slackbuilds/14.2/system/docker
+mkdir -p ${PKG}/etc/rc.d
+install -g root -o root -m 0644 ${CWD}/rc.docker ${PKG}/etc/rc.d/rc.docker.new
+
+mkdir -p ${PKG}/etc/logrotate.d
+install -g root -o root -m 0644 ${CWD}/docker.logrotate ${PKG}/etc/logrotate.d/docker.new
+
+# The static binaries.
+mkdir -p ${PKG}/usr/bin
+install -g root -o root -m 0755 * ${PKG}/usr/bin
+
+# TODO: man pages + docs
+# TODO: docker-compose
+
+# Description and slapt-get addition files.
+mkdir -p $PKG/install
+cp -a ${CWD}/slack-desc ${PKG}/install/slack-desc
+cat $CWD/slack-required > $PKG/install/slack-required
+
+# Common Slackbuild doinst functions + install script.
+cat ${CWD}/../common/doinst_common.sh > ${PKG}/install/doinst.sh
+cat ${CWD}/doinst.sh >> ${PKG}/install/doinst.sh
+chmod 0755 ${PKG}/install/doinst.sh
+
+slackbuild_build
+
+# Cleanup the special binaries.
+cd $TMP
+rm -rf ${NAME}-${VERSION}
+# rm -rf $PKG
