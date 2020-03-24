@@ -1,0 +1,19 @@
+* git clone
+* signature verify:
+    - gpg
+    - md5sum
+    - sha512sum
+    - sha1sum
+* standard unpack
+* man file cleanup
+* gzip man files
+* sane permissions?!
+* don't ship *.la files or *.pc files?
+* strip execs
+
+* install python modules/helpers (mod_wsgi)
+
+* find_user - # Finds user '$2' in dir root '$1'.
+* find_group - # Finds group '$2' in dir root '$1'.
+
+* doinst common functions
