@@ -40,3 +40,8 @@ slackbuild_setpkgperms() {
     find . -perm 664 -exec chmod 644 {} \;
     find . -perm 444 -exec chmod 644 {} \;
 }
+
+slackbuild_build() {
+    cd $PKG
+    makepkg -l y -c n $TMP/${NAME}-${VERSION}-${ARCH}-${BUILD}.txz
+}
