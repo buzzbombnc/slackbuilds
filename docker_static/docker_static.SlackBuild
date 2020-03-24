@@ -8,6 +8,8 @@ VERSION=${VERSION:-19.03.8}
 ARCH=${ARCH:-x86_64}
 BUILD=${BUILD:-1}
 
+which pip &>/dev/null || die 'pip is required to install docker-compose.'
+
 slackbuild_init
 
 slackbuild_download https://download.docker.com/linux/static/stable/${ARCH}/docker-${VERSION}.tgz ${NAME}-${VERSION}.tgz
@@ -41,7 +43,9 @@ mkdir -p ${PKG}/usr/bin
 install -g root -o root -m 0755 * ${PKG}/usr/bin
 
 # TODO: man pages + docs
-# TODO: docker-compose
+
+# Build and install docker-compose.
+pip install --root ${PKG} docker-compose
 
 # Description and slapt-get addition files.
 mkdir -p $PKG/install
