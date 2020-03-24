@@ -36,6 +36,9 @@ docker_start() {
     fi
   fi
 
+  # Execute the cgroupfs-mount.sh script to make sure mounts are right.
+  [[ -x /etc/docker/cgroupfs-mount.sh ]] && (/etc/docker/cgroupfs-mount.sh)
+
   nohup "${UNSHARE}" -m -- ${DOCKER} -p ${DOCKER_PIDFILE} ${DOCKER_OPTS} >> ${DOCKER_LOG} 2>&1 &
 }
 

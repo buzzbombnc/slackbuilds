@@ -4,7 +4,7 @@
 . ../common/common.sh
 
 NAME=docker_static
-VERSION=19.03.8
+VERSION=${VERSION:-19.03.8}
 ARCH=${ARCH:-x86_64}
 BUILD=${BUILD:-1}
 
@@ -23,6 +23,7 @@ cd docker
 slackbuild_setpkgperms
 
 mkdir -p ${PKG}/etc/docker
+install -g root -o root -m 0755 ${CWD}/cgroupfs-mount ${PKG}/etc/docker/cgroupfs-mount.sh
 
 mkdir -p ${PKG}/etc/default
 install -g root -o root -m 0644 ${CWD}/docker.default ${PKG}/etc/default/docker.default.new
@@ -57,4 +58,4 @@ slackbuild_build
 # Cleanup the special binaries.
 cd $TMP
 rm -rf ${NAME}-${VERSION}
-# rm -rf $PKG
+rm -rf $PKG
