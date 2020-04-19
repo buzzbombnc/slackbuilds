@@ -45,3 +45,9 @@ slackbuild_build() {
     cd $PKG
     makepkg -l y -c n $TMP/${NAME}-${VERSION}-${ARCH}-${BUILD}.txz
 }
+
+# For the package in $1, get the md5sum and extract just the checksum to stdout.
+slackbuild_get_md5sum() {
+    local OUT=$(md5sum $1)
+    echo $OUT | cut -d' ' -f1
+}
