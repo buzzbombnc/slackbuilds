@@ -1,0 +1,86 @@
+#!/bin/sh
+#
+# Monit startup script for Slackware Linux
+#
+# Monit is a utility for managing and monitoring processes,
+# files, directories and filesystems on a Unix system. Monit conducts
+# automatic maintenance and repair and can execute meaningful causal
+# actions in error situations.
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
+
+BASE=monit
+
+MONIT=/usr/bin/${BASE}
+MONIT_PIDFILE=/var/run/monit.pid
+MONIT_OPTS=""
+
+# Default options.
+if [ -f /etc/default/monit ]; then
+  . /etc/default/monit
+fi
+
+# Check if monit is present.
+if [ ! -x ${MONIT} ]; then
+  echo "${MONIT} not present or not executable"
+  exit 1
+fi
+
+monit_start() {
+  echo "Starting ${BASE} ..."
+  # If there is an old PID file (no monitd running), clean it up.
+  if [ -r ${MONIT_PIDFILE} ]; then
+    if ! ps axc | grep ${BASE} 1> /dev/null 2> /dev/null ; then
+      echo "Cleaning up old ${MONIT_PIDFILE}."
+      rm -f ${MONIT_PIDFILE}
+    fi
+  fi
+
+  ${MONIT} ${MONIT_OPTIONS}
+}
+
+monit_stop() {
+  echo -n "Stopping ${BASE} ..."
+  if [ -r ${MONIT_PIDFILE} ]; then
+    MONIT_PID=$(cat ${MONIT_PIDFILE})
+    kill ${MONIT_PID}
+    while [ -d /proc/${MONIT_PID} ]; do
+      sleep 1
+      echo -n "."
+    done
+  fi
+  echo " done"
+}
+
+monit_restart() {
+  monit_stop
+  sleep 1
+  monit_start
+}
+
+monit_status() {
+  if [ -f ${MONIT_PIDFILE} ] && ps -o cmd $(cat ${MONIT_PIDFILE}) | grep -q ${BASE} ; then
+    echo "Status of ${BASE}: running"
+  else
+    echo "Status of ${BASE}: stopped"
+  fi
+}
+
+case "$1" in
+  'start')
+    monit_start
+    ;;
+  'stop')
+    monit_stop
+    ;;
+  'restart')
+    monit_restart
+    ;;
+  'status')
+    monit_status
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|status}"
+esac
+
+exit 0

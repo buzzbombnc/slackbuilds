@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# Common Slackbuild functions
+. ../common/common.sh
+
+NAME=monit
+VERSION=${VERSION:-5.29.0}
+ARCH=${ARCH:-x86_64}
+BUILD=${BUILD:-1}
+
+slackbuild_init
+
+slackbuild_download https://mmonit.com/monit/dist/monit-${VERSION}.tar.gz ${NAME}-${VERSION}.tgz
+
+# Unpack into the temp directory.
+cd $TMP
+rm -rf ${NAME}-${VERSION}
+tar zxvf $CWD/${NAME}-${VERSION}.tgz
+cd ${NAME}-${VERSION}
+
+slackbuild_setpkgperms
+
+# Automatically determine the architecture we're building on:
+if [ -z "$ARCH" ]; then
+  case "$( uname -m )" in
+    i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless $ARCH is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+if [ "$ARCH" = "i486" ]; then
+  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+  LIBDIRSUFFIX=""
+elif [ "$ARCH" = "s390" ]; then
+  SLKCFLAGS="-O2"
+  LIBDIRSUFFIX=""
+elif [ "$ARCH" = "x86_64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  LIBDIRSUFFIX="64"
+else
+  SLKCFLAGS="-O2"
+  LIBDIRSUFFIX=""
+fi
+
+CFLAGS="$SLKCFLAGS" \
+CXXFLAGS="$SLKCFLAGS" \
+./configure \
+  --prefix=/usr \
+  --without-pam \
+  --libdir=/usr/lib${LIBDIRSUFFIX} \
+  --mandir=/usr/man \
+  --sysconfdir=/etc/monit \
+  --build=$ARCH-slackware-linux
+
+make -j$CPUCOUNT
+make -j$CPUCOUNT check
+make install-strip DESTDIR=$PKG
+
+mkdir -p $PKG/etc/rc.d
+cat $CWD/rc.monit > $PKG/etc/rc.d/rc.monit.new
+chmod 0644 $PKG/etc/rc.d/rc.monit.new
+
+mkdir -p $PKG/etc/monit/monit.d
+chmod 0750 $PKG/etc/monit/monit.d
+# Update the config .d dir and set the pidfile.
+sed -e 's!#  include.*!include /etc/monit/monit.d/*.conf!g' \
+    -e 's!^# set pidfile.*!set pidfile /var/run/monit.pid!g' \
+    -e 's!^# set idfile.*!set idfile /etc/monit/id!g' \
+    -e 's!^# set statefile.*!set statefile /etc/monit/state!g' \
+    monitrc > $PKG/etc/monit/monitrc.new
+chmod -R 0640 $PKG/etc/monit/*
+chmod 0700 $PKG/etc/monit/monitrc.new
+
+mkdir -p $PKG/usr/doc/${NAME}-${VERSION}
+cat $CWD/monit.SlackBuild > $PKG/usr/doc/${NAME}-${VERSION}/monit.SlackBuild
+cp CHANGES CONTRIBUTORS COPYING $PKG/usr/doc/${NAME}-${VERSION}
+
+gzip -9 $PKG/usr/man/man?/*.?
+
+# Description and slapt-get addition files.
+mkdir -p $PKG/install
+cp -a ${CWD}/slack-desc ${PKG}/install/slack-desc
+cat $CWD/slack-required > $PKG/install/slack-required
+
+# Common Slackbuild doinst functions + install script.
+cat ${CWD}/../common/doinst_common.sh > ${PKG}/install/doinst.sh
+cat ${CWD}/doinst.sh >> ${PKG}/install/doinst.sh
+chmod 0755 ${PKG}/install/doinst.sh
+
+slackbuild_build
+
+# Cleanup the special binaries.
+cd $TMP
+rm -rf ${NAME}-${VERSION}
+rm -rf $PKG
