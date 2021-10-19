@@ -16,6 +16,9 @@ slackbuild_init() {
     PKG=$TMP/package-${NAME}
     rm -rf $PKG
     mkdir -p $PKG
+
+    # Set the CPU count to CPUs + 1.
+    CPUCOUNT=$((`nproc`+1))
 }
 
 # URL is in $1
