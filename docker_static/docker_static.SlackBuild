@@ -4,17 +4,22 @@
 . ../common/common.sh
 
 NAME=docker_static
-VERSION=${VERSION:-19.03.8}
+VERSION=${VERSION:-20.10.17}
+COMPOSE_VERSION=${COMPOSE_VERSION:-v2.6.0}
+COMPOSE_SWITCH_VERSION=${COMPOSE_SWITCH_VERSION:-latest}
 ARCH=${ARCH:-x86_64}
 BUILD=${BUILD:-1}
 
-which pip &>/dev/null || die 'pip is required to install docker-compose.'
-
 slackbuild_init
 
+# Docker
 slackbuild_download https://download.docker.com/linux/static/stable/${ARCH}/docker-${VERSION}.tgz ${NAME}-${VERSION}.tgz
+# Docker Compose add-on
+slackbuild_download https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-x86_64 docker-compose
+# docker-compose shim from v1 -> v2
+slackbuild_download https://github.com/docker/compose-switch/releases/${COMPOSE_SWITCH_VERSION}/download/docker-compose-linux-amd64 docker-compose-shim
 
-# These files unpack to a 'docker/' directory with no version.  Create our own.
+# The main package's files unpack to a 'docker/' directory with no version.  Create our own.
 cd $TMP
 rm -rf ${NAME}-${VERSION}
 mkdir ${NAME}-${VERSION}
@@ -44,8 +49,12 @@ install -g root -o root -m 0755 * ${PKG}/usr/bin
 
 # TODO: man pages + docs
 
-# Build and install docker-compose.
-pip install --root ${PKG} docker-compose
+# Land docker-compose to where it needs to go.
+mkdir -p ${PKG}/usr/libexec/docker/cli-plugins
+install -g root -o root -m 0755 ${CWD}/docker-compose ${PKG}/usr/libexec/docker/cli-plugins/docker-compose
+
+# Land the docker-compose shim command where it needs to go.
+install -g root -o root -m 0755 ${CWD}/docker-compose-shim ${PKG}/usr/bin/docker-compose
 
 # Description and slapt-get addition files.
 mkdir -p $PKG/install
