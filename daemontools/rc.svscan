@@ -1,0 +1,32 @@
+#!/bin/sh
+# /etc/rc.d/rc.svscan : start or stop the svscan subsystem.
+
+PATH=$PATH:/usr/local/bin
+
+case "$1" in
+    start)
+	echo -n "Starting djb services: svscan"
+	cd /etc/service
+	env - PATH="$PATH" /usr/sbin/svscan &
+	echo $! > /var/run/svscan.pid
+	echo "."
+        ;;
+    stop)
+	echo -n "Stopping djb services: svscan"
+	kill `cat /var/run/svscan.pid`
+	echo -n "services "
+	svc -dx /etc/service/*
+	echo -n " logging"
+	svc -dx /etc/service/*/log
+	echo "."
+	;;
+    restart)
+        $0 stop
+        $0 start
+        ;;
+    *)
+        echo 'Usage: /etc/rc.d/rc.svscan {start|stop|restart}'
+        exit 1
+esac
+
+exit 0

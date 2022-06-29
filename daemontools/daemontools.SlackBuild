@@ -1,0 +1,77 @@
+#!/bin/sh
+
+# Set initial variables
+CWD=`pwd`
+if [ "$TMP" = "" ]; then
+  TMP=/tmp
+fi
+
+PKG=${TMP}/package-daemontools
+
+NAME=daemontools
+VERSION=0.76
+ARCH=${ARCH:-x86_64}
+BUILD=${BUILD:-1}
+
+if [ ! -d $TMP ]; then
+  mkdir -p $TMP # location to build the source
+fi
+
+rm -rf $PKG
+mkdir -p $PKG
+cd $TMP
+rm -rf ${NAME}-${VERSION}
+tar jxvf $CWD/${NAME}-${VERSION}.tar.bz2
+
+cd ${NAME}-${VERSION}
+chown -R root.root .
+find . -perm 444 -exec chmod 644 {} \;
+find . -perm 777 -exec chmod 755 {} \;
+find . -perm 555 -exec chmod 755 {} \;
+
+# Compile it.
+package/compile
+
+# Now patch it before install.
+cd command
+sed -e 's|/command:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin|/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin|' \
+    -e 's|command|usr/sbin|' \
+    -e 's|/service|/etc/service|g' svscanboot > svscanboot~ && mv svscanboot~ svscanboot
+chmod 555 svscanboot
+cd ..
+
+# Build the directories.
+mkdir -p ${PKG}/etc/service
+chmod 700 ${PKG}/etc/service
+mkdir -p ${PKG}/etc/rc.d
+mkdir -p ${PKG}/usr/sbin
+mkdir -p ${PKG}/usr/man/man8
+mkdir -p ${PKG}/usr/doc/${NAME}-${VERSION}
+
+# Install the software.
+cp -a command/* ${PKG}/usr/sbin
+
+# Install the man pages.
+cp -a ${CWD}/man/* ${PKG}/usr/man/man8
+
+# Install the stub files for startup.
+cp -a ${CWD}/rc.svscan ${PKG}/etc/rc.d/rc.svscan.new
+chmod 644 ${PKG}/etc/rc.d/rc.svscan.new
+
+# Install the meager documentation.
+cp -a package/README ${PKG}/usr/doc/${NAME}-${VERSION}
+
+# Prep the install files and dirs.
+mkdir -p ${PKG}/install
+cat ${CWD}/slack-desc > ${PKG}/install/slack-desc
+cat ${CWD}/doinst.sh > ${PKG}/install/doinst.sh
+
+# Build the package:
+cd ${PKG}
+makepkg -l y -c n ${TMP}/${NAME}-${VERSION}-${ARCH}-${BUILD}.txz
+
+# Clean up the extra stuff:
+if [ "$1" = "--cleanup" ]; then
+  rm -rf ${TMP}/${NAME}-${VERSION}
+  rm -rf ${PKG}
+fi
