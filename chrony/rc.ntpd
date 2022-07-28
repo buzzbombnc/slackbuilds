@@ -1,0 +1,36 @@
+#!/bin/sh
+# Start/stop/restart the chrony daemon.
+
+chronyd_start() {
+  if [ -x /usr/sbin/chronyd ]; then
+    echo -n "Starting chronyd daemon:  "
+    echo -n "/usr/sbin/chronyd "
+    echo ""
+    /usr/sbin/chronyd 2> /dev/null
+    sleep 1 
+  fi
+}
+
+chronyd_stop() {
+  killall chronyd 2> /dev/null
+}
+
+chronyd_restart() {
+  chronyd_stop
+  sleep 1
+  chronyd_start
+}
+
+case "$1" in
+'start')
+ chronyd_start
+  ;;
+'stop')
+  chronyd_stop
+  ;;
+'restart')
+ chronyd_restart
+  ;;
+*)
+  echo "usage $0 start|stop|restart"
+esac
