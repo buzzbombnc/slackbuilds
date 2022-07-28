@@ -56,6 +56,7 @@ slackbuild_get_md5sum() {
 }
 
 # Verify the GPG signature file in $1.  Assume the key is in the keyring already.
+# Note that $@ is passed for if the verification filename differs from the data.
 slackbuild_verify_gpg() {
-    gpg2 --verify $1
+    gpg2 --verify $@
 }
