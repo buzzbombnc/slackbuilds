@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# Common Slackbuild functions
+. ../common/common.sh
+
+NAME=runit
+VERSION=${VERSION:-2.1.2}
+ARCH=${ARCH:-x86_64}
+BUILD=${BUILD:-1}
+
+slackbuild_init
+
+# Docker
+slackbuild_download http://smarden.org/runit/runit-${VERSION}.tar.gz
+
+# The main package's files unpack to an intermediate 'admin' directory.  Clean it up.
+cd $TMP
+rm -rf ${NAME}-${VERSION}
+mkdir ${NAME}-${VERSION}
+cd ${NAME}-${VERSION}
+tar zxvf $CWD/${NAME}-${VERSION}.tar.gz
+cd admin/${NAME}-${VERSION}
+
+slackbuild_setpkgperms
+
+# Compile and test it.
+package/compile
+package/check
+
+# Create some symlinks in command to emulate daemontools.
+cd command
+for I in envdir envuidgid pgrphack setlock setuidgid softlimit; do
+  ln -sf chpst $I
+done
+cd ..
+
+# Build the directories.
+mkdir -p ${PKG}/etc/service
+chmod 700 ${PKG}/etc/service
+mkdir -p ${PKG}/etc/rc.d
+mkdir -p ${PKG}/usr/sbin
+mkdir -p ${PKG}/usr/man/man8
+mkdir -p ${PKG}/usr/doc/${NAME}-${VERSION}
+
+# Install the software.
+cp -a command/* ${PKG}/usr/sbin
+
+# Install the built-in man pages plus the daemontools symlink ones.
+gzip -9 man/*
+cp -a man/* ${PKG}/usr/man/man8
+cp -a ${CWD}/man/* ${PKG}/usr/man/man8
+
+# Install the stub files for startup.
+cp -a ${CWD}/rc.runsvdir ${PKG}/etc/rc.d/rc.runsvdir.new
+chmod 644 ${PKG}/etc/rc.d/rc.runsvdir.new
+
+# Install the documentation.
+cp -a package/CHANGES package/COPYING package/README package/THANKS package/TODO doc/*.html ${PKG}/usr/doc/${NAME}-${VERSION}
+
+# Prep the install files and dirs.
+mkdir -p ${PKG}/install
+cat ${CWD}/runit.SlackBuild > ${PKG}/install/runit.SlackBuild
+cat ${CWD}/slack-desc > ${PKG}/install/slack-desc
+cat ${CWD}/slack-required > ${PKG}/install/slack-required
+
+# Common Slackbuild doinst functions + install script.
+cat ${CWD}/../common/doinst_common.sh > ${PKG}/install/doinst.sh
+cat ${CWD}/doinst.sh >> ${PKG}/install/doinst.sh
+chmod 0755 ${PKG}/install/doinst.sh
+
+slackbuild_build
+
+# Cleanup the special binaries.
+if [ "$1" = "--cleanup" ]; then
+  cd $TMP
+  rm -rf ${NAME}-${VERSION}
+  rm -rf $PKG
+fi

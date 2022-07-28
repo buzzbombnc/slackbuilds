@@ -54,3 +54,8 @@ slackbuild_get_md5sum() {
     local OUT=$(md5sum $1)
     echo $OUT | cut -d' ' -f1
 }
+
+# Verify the GPG signature file in $1.  Assume the key is in the keyring already.
+slackbuild_verify_gpg() {
+    gpg2 --verify $1
+}

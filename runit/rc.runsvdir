@@ -1,0 +1,31 @@
+#!/bin/sh
+# /etc/rc.d/rc.runsvdir : start or stop the runit subsystem.
+
+PATH=/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin
+
+case "$1" in
+    start)
+    echo -n "Starting runit services: runsvdir"
+    exec env - PATH="$PATH" \
+    runsvdir -P /etc/service 'log: ...........................................................................................................................................................................................................................................................................................................................................................................................................' &
+    echo $! > /var/run/runsvdir.pid
+    echo "."
+        ;;
+    stop)
+    echo -n "Stopping runit services: runsvdir"
+    kill `cat /var/run/runsvdir.pid`
+    echo -n "services "
+    sv -w196 force-stop /etc/service/*
+    sv exit /etc/service/*
+    echo "."
+    ;;
+    restart)
+        $0 stop
+        $0 start
+        ;;
+    *)
+        echo 'Usage: /etc/rc.d/rc.runsvdir {start|stop|restart}'
+        exit 1
+esac
+
+exit 0

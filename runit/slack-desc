@@ -1,0 +1,18 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.  Line
+# up the first '|' above the ':' following the base package name, and the '|'
+# on the right side marks the last column you can put a character in.  You must
+# make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':'.
+     |----- handy-ruler------------------------------------------------------|
+runit: runit is a cross-platform Unix init scheme with service supervision,
+runit: a replacement for sysvinit, and other init schemes. It runs on
+runit: GNU/Linux, *BSD, MacOSX, Solaris, and can easily be adapted to other
+runit: Unix operating systems. If runit runs for you on any other operating
+runit: system, please let me know.
+runit:
+runit: http://smarden.org/runit/index.html
+runit:
+runit:
+runit:
+runit:
