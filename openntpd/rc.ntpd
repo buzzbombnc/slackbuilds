@@ -1,0 +1,36 @@
+#!/bin/sh
+# Start/stop/restart the network time protocol daemon 
+
+ntpd_start() {
+  if [ -x /usr/sbin/ntpd ]; then
+    echo -n "Starting ntpd daemon:  "
+    echo -n "/usr/sbin/ntpd "
+    echo ""
+    /usr/sbin/ntpd 2> /dev/null
+    sleep 1 
+  fi
+}
+
+ntpd_stop() {
+  killall ntpd 2> /dev/null
+}
+
+ntpd_restart() {
+  ntpd_stop
+  sleep 1
+  ntpd_start
+}
+
+case "$1" in
+'start')
+ ntpd_start
+  ;;
+'stop')
+  ntpd_stop
+  ;;
+'restart')
+ ntpd_restart
+  ;;
+*)
+  echo "usage $0 start|stop|restart"
+esac
