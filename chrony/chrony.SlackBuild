@@ -74,6 +74,8 @@ mkdir -p ${PKG}/etc/rc.d
 cat ${CWD}/rc.ntpd > ${PKG}/etc/rc.d/rc.ntpd
 chmod 755 ${PKG}/etc/rc.d/rc.ntpd
 
+chown -R ntp: ${PKG}/var/lib/chrony
+
 mkdir -p ${PKG}/install
 cat ${CWD}/slack-desc > ${PKG}/install/slack-desc
 
