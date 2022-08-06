@@ -5,7 +5,7 @@
 
 NAME=docker_static
 VERSION=${VERSION:-20.10.17}
-COMPOSE_VERSION=${COMPOSE_VERSION:-v2.6.0}
+COMPOSE_VERSION=${COMPOSE_VERSION:-v2.9.0}
 COMPOSE_SWITCH_VERSION=${COMPOSE_SWITCH_VERSION:-latest}
 ARCH=${ARCH:-x86_64}
 BUILD=${BUILD:-1}
@@ -15,9 +15,9 @@ slackbuild_init
 # Docker
 slackbuild_download https://download.docker.com/linux/static/stable/${ARCH}/docker-${VERSION}.tgz ${NAME}-${VERSION}.tgz
 # Docker Compose add-on
-slackbuild_download https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-x86_64 docker-compose
+slackbuild_download https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-x86_64 docker-compose-${COMPOSE_VERSION}
 # docker-compose shim from v1 -> v2
-slackbuild_download https://github.com/docker/compose-switch/releases/${COMPOSE_SWITCH_VERSION}/download/docker-compose-linux-amd64 docker-compose-shim
+slackbuild_download https://github.com/docker/compose-switch/releases/${COMPOSE_SWITCH_VERSION}/download/docker-compose-linux-amd64 docker-compose-shim-${COMPOSE_SWITCH_VERSION}
 
 # The main package's files unpack to a 'docker/' directory with no version.  Create our own.
 cd $TMP
@@ -31,14 +31,21 @@ slackbuild_setpkgperms
 
 mkdir -p ${PKG}/etc/docker
 install -g root -o root -m 0755 ${CWD}/cgroupfs-mount ${PKG}/etc/docker/cgroupfs-mount.sh
+install -g root -o root -m 0644 ${CWD}/daemon.json ${PKG}/etc/docker/daemon.json.new
 
 mkdir -p ${PKG}/etc/default
-install -g root -o root -m 0644 ${CWD}/docker.default ${PKG}/etc/default/docker.default.new
+install -g root -o root -m 0644 ${CWD}/docker.default ${PKG}/etc/default/docker.new
 
-# Startup script.
+# BSD startup script.
 # Stolen from the full-compile docker SlackBuild here: https://slackbuilds.org/slackbuilds/14.2/system/docker
 mkdir -p ${PKG}/etc/rc.d
 install -g root -o root -m 0644 ${CWD}/rc.docker ${PKG}/etc/rc.d/rc.docker.new
+
+# Runit startup scripts.  Stashed in a dot directory and will be landed via doinst.
+mkdir -p ${PKG}/etc/service/.dockerd/log
+install -g root -o root -m 0755 ${CWD}/dockerd.runit ${PKG}/etc/service/.dockerd/run
+install -g root -o root -m 0755 ${CWD}/dockerd-log.runit ${PKG}/etc/service/.dockerd/log/run
+touch ${PKG}/etc/service/.dockerd/down ${PKG}/etc/service/.dockerd/log/down
 
 mkdir -p ${PKG}/etc/logrotate.d
 install -g root -o root -m 0644 ${CWD}/docker.logrotate ${PKG}/etc/logrotate.d/docker.new
@@ -51,10 +58,10 @@ install -g root -o root -m 0755 * ${PKG}/usr/bin
 
 # Land docker-compose to where it needs to go.
 mkdir -p ${PKG}/usr/libexec/docker/cli-plugins
-install -g root -o root -m 0755 ${CWD}/docker-compose ${PKG}/usr/libexec/docker/cli-plugins/docker-compose
+install -g root -o root -m 0755 ${CWD}/docker-compose-${COMPOSE_VERSION} ${PKG}/usr/libexec/docker/cli-plugins/docker-compose
 
 # Land the docker-compose shim command where it needs to go.
-install -g root -o root -m 0755 ${CWD}/docker-compose-shim ${PKG}/usr/bin/docker-compose
+install -g root -o root -m 0755 ${CWD}/docker-compose-shim-${COMPOSE_SWITCH_VERSION} ${PKG}/usr/bin/docker-compose
 
 # Description and slapt-get addition files.
 mkdir -p $PKG/install

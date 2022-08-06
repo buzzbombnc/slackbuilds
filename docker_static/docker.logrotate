@@ -1,4 +1,4 @@
-/var/log/docker.log {
+/var/log/dockerd/docker.log {
     daily
     rotate 7
     copytruncate

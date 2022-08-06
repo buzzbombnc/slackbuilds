@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ ! -d "/var/log/dockerd" ]; then
+  mkdir /var/log/dockerd
+fi
+chown -R logger:logger /var/log/dockerd
+
+exec chpst -u logger svlogd /var/log/dockerd

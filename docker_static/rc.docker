@@ -12,7 +12,7 @@ BASE=dockerd
 UNSHARE=/usr/bin/unshare
 DOCKER=/usr/bin/${BASE}
 DOCKER_PIDFILE=/var/run/${BASE}.pid
-DOCKER_LOG=/var/log/docker.log
+DOCKER_LOG=/var/log/dockerd/docker.log
 DOCKER_OPTS=""
 
 # Default options.
@@ -27,6 +27,7 @@ if [ ! -x ${DOCKER} ]; then
 fi
 
 docker_start() {
+  mkdir -p $(dirname $DOCKER_LOG)
   echo "Starting ${BASE} ..."
   # If there is an old PID file (no dockerd running), clean it up.
   if [ -r ${DOCKER_PIDFILE} ]; then

@@ -1,4 +1,4 @@
 # Downloaded binaries.
-docker-*.tgz
-docker-compose
-docker-compose-shim
+docker_static-*.tgz
+docker-compose-*
+docker-compose-shim-*

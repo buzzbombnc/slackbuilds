@@ -1,0 +1,16 @@
+#!/bin/sh
+
+exec 2>&1
+
+DOCKER_PIDFILE=/var/run/dockerd.pid
+DOCKER_OPTS=""
+
+# Default options.
+if [ -f /etc/default/docker ]; then
+  . /etc/default/docker
+fi
+
+# Execute the cgroupfs-mount.sh script to make sure mounts are right.
+[[ -x /etc/docker/cgroupfs-mount.sh ]] && (/etc/docker/cgroupfs-mount.sh)
+
+exec /usr/bin/unshare -m -- /usr/bin/dockerd -p ${DOCKER_PIDFILE} ${DOCKER_OPTS}
