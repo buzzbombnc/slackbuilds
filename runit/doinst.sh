@@ -1,3 +1,11 @@
+# Add a useful unprivileged logger group and user.
+if ! group_exists logger && ! user_exists logger; then
+    LOGGER_ID=$(find_system_gid_uid both)
+    echo "Creating 'logger' with gid/uid $LOGGER_ID."
+    groupadd -g $LOGGER_ID logger
+    useradd --home-dir /var/empty --gid logger --no-create-home --no-user-group --system --uid $LOGGER_ID logger
+fi
+
 # Make sure the .new start files have matching permissions of the existing files.
 for I in rc.runsvdir.new; do
     B=`basename $I .new`

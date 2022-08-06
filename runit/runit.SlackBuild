@@ -23,6 +23,9 @@ cd admin/${NAME}-${VERSION}
 
 slackbuild_setpkgperms
 
+# Patch the default service directory for `sv` to be /etc/service.
+patch -u -p0 -i ${CWD}/sv.c.patch || exit 1
+
 # Compile and test it.
 package/compile
 package/check
@@ -36,7 +39,7 @@ cd ..
 
 # Build the directories.
 mkdir -p ${PKG}/etc/service
-chmod 700 ${PKG}/etc/service
+chmod 0755 ${PKG}/etc/service
 mkdir -p ${PKG}/etc/rc.d
 mkdir -p ${PKG}/usr/sbin
 mkdir -p ${PKG}/usr/man/man8
@@ -44,6 +47,9 @@ mkdir -p ${PKG}/usr/doc/${NAME}-${VERSION}
 
 # Install the software.
 cp -a command/* ${PKG}/usr/sbin
+
+# Patch the `sv` man page to know of the new default directory.
+sed -i -e 's|^\.IR /service/|.IR /etc/service/|g' man/sv.8
 
 # Install the built-in man pages plus the daemontools symlink ones.
 gzip -9 man/*
