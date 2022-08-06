@@ -13,7 +13,4 @@
 
 * install python modules/helpers (mod_wsgi)
 
-* find_user - # Finds user '$2' in dir root '$1'.
-* find_group - # Finds group '$2' in dir root '$1'.
-
 * doinst common functions
